@@ -1,24 +1,19 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
+import os
+from app.services.pdf_reader import extract_text_from_pdf
 
 # Import CORS middleware
 from fastapi.middleware.cors import CORSMiddleware
 
-# ==================================================
-# CREATE FASTAPI APPLICATION
-# ==================================================
 
+# CREATE FASTAPI APPLICATION
 app = FastAPI(
     title="PaperLens API",
     description="Backend API for the PaperLens research assistant.",
     version="1.0.0"
 )
 
-# ==================================================
-# ENABLE CORS
-# This allows our React/Next.js frontend
-# to communicate with the backend.
-# ==================================================
-
+# ENABLE CORS: This allows our React/Next.js frontend to communicate with the backend.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -29,12 +24,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ==================================================
-# ROOT ENDPOINT
-# ==================================================
 
+# ROOT ENDPOINT
 @app.get("/")
 def home():
     return {
         "message": "PaperLens Backend Running!"
+    }
+
+
+# PDF UPLOAD ENDPOINT
+@app.post("/upload")
+
+async def upload_pdf(file: UploadFile = File(...)):
+
+    # Create the file path where we'll save the PDF
+    file_path = f"app/storage/papers/{file.filename}"
+
+    # Save the uploaded PDF
+    with open(file_path, "wb") as pdf_file:
+        pdf_file.write(await file.read())
+
+    # Extract text using our PDF reader service
+    extracted_text = extract_text_from_pdf(file_path)
+
+    # Return the result
+    return {
+        "filename": file.filename,
+        "text": extracted_text
     }
