@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 import os
 from app.services.pdf_reader import extract_text_from_pdf
+from app.services.chunker import split_into_chunks
 
 # Import CORS middleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,8 +49,12 @@ async def upload_pdf(file: UploadFile = File(...)):
     # Extract text using our PDF reader service
     extracted_text = extract_text_from_pdf(file_path)
 
+    # Split the extracted text into chunks
+    chunks = split_into_chunks(extracted_text)
+
     # Return the result
     return {
         "filename": file.filename,
-        "text": extracted_text
+        "number_of_chunks": len(chunks),
+        "chunks": chunks
     }
