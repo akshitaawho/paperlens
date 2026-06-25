@@ -1,20 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Home() {
 
-    const [message, setMessage] = useState("Loading...");
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [uploadResult, setUploadResult] = useState("");
 
-    useEffect(() => {
+    async function uploadPDF() {
 
-        fetch("http://127.0.0.1:8000/")
-            .then((response) => response.json())
-            .then((data) => {
-                setMessage(data.message);
-            });
+        if (!selectedFile) {
+            alert("Please choose a PDF first.");
+            return;
+        }
 
-    }, []);
+        const formData = new FormData();
+
+        formData.append("file", selectedFile);
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/upload",
+            {
+                method: "POST",
+                body: formData,
+            }
+        );
+
+        const data = await response.json();
+
+        setUploadResult(
+            `Successfully created ${data.number_of_chunks} chunks.`
+        );
+    }
 
     return (
 
@@ -25,12 +42,47 @@ export default function Home() {
             }}
         >
 
-            <h1>PaperLens</h1>
+            <h1>📄 PaperLens</h1>
 
-            <h2>Backend says:</h2>
+            <br />
 
-            <p>{message}</p>
+            <input
 
+                type="file"
+
+                accept=".pdf"
+
+                onChange={(event) => {
+
+                    if (event.target.files) {
+                        setSelectedFile(event.target.files[0]);
+                    }
+
+                }}
+
+            />
+
+            <br />
+            <br />
+
+            {selectedFile && (
+                <>
+                    <p>
+                        Selected File:
+                        <br />
+                        <b>{selectedFile.name}</b>
+                    </p>
+
+                    <button onClick={uploadPDF}>
+                        Upload PDF
+                    </button>
+
+                    <br />
+                    <br />
+
+                    <p>{uploadResult}</p>
+                </>
+            )}
         </main>
 
     );
