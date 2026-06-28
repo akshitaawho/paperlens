@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import UploadSection from "../components/UploadSection";
+import ChatSection from "../components/ChatSection";
+import AnswerCard from "../components/AnswerCard";
 
 export default function Home() {
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [question, setQuestion] = useState("");
+    const [answer, setAnswer] = useState("");
     const [uploadResult, setUploadResult] = useState("");
 
     async function uploadPDF() {
@@ -31,58 +36,65 @@ export default function Home() {
         setUploadResult(
             `Successfully created ${data.number_of_chunks} chunks.`
         );
+
+    }
+    
+    async function askQuestion() {
+
+        if (!question) {
+            alert("Please enter a question.");
+            return;
+        }
+
+        const response = await fetch(
+            `http://127.0.0.1:8000/ask?question=${encodeURIComponent(question)}`
+        );
+
+        const data = await response.json();
+
+        setAnswer(data.answer);
+        setSources(data.retrieved_chunks);
     }
 
     return (
 
-        <main
-            style={{
-                padding: "40px",
-                fontFamily: "Arial"
-            }}
-        >
+        <main className="min-h-screen bg-background">
 
-            <h1>📄 PaperLens</h1>
+            <div className="max-w-3xl mx-auto px-6 py-12">
 
-            <br />
+                <h1 className="text-5xl font-bold text-center">
+                    PaperLens
+                </h1>
 
-            <input
+                <p className="text-muted-foreground text-center mt-3 mb-10">
+                    AI-powered Research Paper Assistant
+                </p>
 
-                type="file"
+                <UploadSection
+                    selectedFile={selectedFile}
+                    setSelectedFile={setSelectedFile}
+                    uploadPDF={uploadPDF}
+                    uploadResult={uploadResult}
+                />
 
-                accept=".pdf"
+                {uploadResult && (
+                    <div className="mt-8">
 
-                onChange={(event) => {
+                        <ChatSection
+                            question={question}
+                            setQuestion={setQuestion}
+                            askQuestion={askQuestion}
+                        />
 
-                    if (event.target.files) {
-                        setSelectedFile(event.target.files[0]);
-                    }
+                        <AnswerCard
+                            answer={answer}
+                        />
 
-                }}
+                    </div>
+                )}
 
-            />
+            </div>
 
-            <br />
-            <br />
-
-            {selectedFile && (
-                <>
-                    <p>
-                        Selected File:
-                        <br />
-                        <b>{selectedFile.name}</b>
-                    </p>
-
-                    <button onClick={uploadPDF}>
-                        Upload PDF
-                    </button>
-
-                    <br />
-                    <br />
-
-                    <p>{uploadResult}</p>
-                </>
-            )}
         </main>
 
     );
