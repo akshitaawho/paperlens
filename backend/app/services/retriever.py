@@ -11,6 +11,8 @@ collection = client.get_or_create_collection(
     name="research_papers"
 )
 
+TOP_K = 5
+
 def retrieve_chunks(query):
 
     # Convert the user's question into an embedding
@@ -21,7 +23,7 @@ def retrieve_chunks(query):
 
         query_embeddings=[query_embedding.tolist()],
 
-        n_results=3,
+        n_results=TOP_K,
 
         include=["documents", "distances"]
 
