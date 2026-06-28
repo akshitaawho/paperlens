@@ -4,12 +4,17 @@ import { useState } from "react";
 import UploadSection from "../components/UploadSection";
 import ChatSection from "../components/ChatSection";
 import AnswerCard from "../components/AnswerCard";
+import SourceCard from "../components/SourceCard";
 
 export default function Home() {
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
+    const [uploadedFileName, setUploadedFileName] = useState("");
+    const [sources, setSources] = useState<string[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isAsking, setIsAsking] = useState(false);
     const [uploadResult, setUploadResult] = useState("");
 
     async function uploadPDF() {
@@ -18,6 +23,8 @@ export default function Home() {
             alert("Please choose a PDF first.");
             return;
         }
+
+        setIsUploading(true);
 
         const formData = new FormData();
 
@@ -32,11 +39,13 @@ export default function Home() {
         );
 
         const data = await response.json();
+        setUploadedFileName(data.filename);
 
         setUploadResult(
             `Successfully created ${data.number_of_chunks} chunks.`
         );
 
+        setIsUploading(false);
     }
     
     async function askQuestion() {
@@ -46,6 +55,8 @@ export default function Home() {
             return;
         }
 
+        setIsAsking(true);
+
         const response = await fetch(
             `http://127.0.0.1:8000/ask?question=${encodeURIComponent(question)}`
         );
@@ -54,13 +65,15 @@ export default function Home() {
 
         setAnswer(data.answer);
         setSources(data.retrieved_chunks);
+
+        setIsAsking(false);
     }
 
     return (
 
         <main className="min-h-screen bg-background">
 
-            <div className="max-w-3xl mx-auto px-6 py-12">
+            <div className="max-w-4xl mx-auto px-6 py-12">
 
                 <h1 className="text-5xl font-bold text-center">
                     PaperLens
@@ -70,28 +83,39 @@ export default function Home() {
                     AI-powered Research Paper Assistant
                 </p>
 
-                <UploadSection
-                    selectedFile={selectedFile}
-                    setSelectedFile={setSelectedFile}
-                    uploadPDF={uploadPDF}
-                    uploadResult={uploadResult}
-                />
+                <div className="rounded-2xl border bg-card shadow-sm">
 
-                {uploadResult && (
-                    <div className="mt-8">
+                    <UploadSection
+                        selectedFile={selectedFile}
+                        setSelectedFile={setSelectedFile}
+                        uploadPDF={uploadPDF}
+                        uploadResult={uploadResult}
+                        uploadedFileName={uploadedFileName}
+                        isUploading={isUploading}
+                    />
 
-                        <ChatSection
-                            question={question}
-                            setQuestion={setQuestion}
-                            askQuestion={askQuestion}
-                        />
+                    {uploadResult && (
+                        <>
+                            <div className="border-t" />
 
-                        <AnswerCard
-                            answer={answer}
-                        />
+                            <ChatSection
+                                question={question}
+                                setQuestion={setQuestion}
+                                askQuestion={askQuestion}
+                                isAsking={isAsking}
+                            />
 
-                    </div>
-                )}
+                            <AnswerCard
+                                answer={answer}
+                            />
+
+                            <SourceCard
+                                sources={sources}
+                            />
+                        </>
+                    )}
+
+                </div>
 
             </div>
 

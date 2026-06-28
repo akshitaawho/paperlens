@@ -1,26 +1,25 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 type ChatSectionProps = {
     question: string;
     setQuestion: (question: string) => void;
     askQuestion: () => void;
+    isAsking: boolean;
 };
 
 export default function ChatSection({
     question,
     setQuestion,
     askQuestion,
+    isAsking,
 }: ChatSectionProps) {
 
     return (
 
-        <Card>
-
-            <CardContent className="p-8 space-y-6">
+        <div className="p-8 space-y-6">
 
                 <h2 className="text-2xl font-semibold">
                     Ask your paper
@@ -33,15 +32,14 @@ export default function ChatSection({
                 />
 
                 <Button
-                    className="w-full"
+                    className="w-fit"
                     onClick={askQuestion}
+                    disabled={isAsking}
                 >
-                    Ask
+                    {isAsking ? "Thinking..." : "Ask"}
                 </Button>
 
-            </CardContent>
-
-        </Card>
+        </div>
 
     );
 

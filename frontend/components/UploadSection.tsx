@@ -1,13 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 type UploadSectionProps = {
     selectedFile: File | null;
     setSelectedFile: (file: File | null) => void;
     uploadPDF: () => void;
     uploadResult: string;
+    uploadedFileName: string;
+    isUploading: boolean;
 };
 
 export default function UploadSection({
@@ -15,13 +16,13 @@ export default function UploadSection({
     setSelectedFile,
     uploadPDF,
     uploadResult,
+    uploadedFileName,
+    isUploading,
 }: UploadSectionProps) {
 
     return (
 
-        <Card className="w-full max-w-2xl mx-auto">
-
-            <CardContent className="flex flex-col gap-6 p-8">
+        <div className="flex flex-col gap-6 p-8">
 
                 <h2 className="text-2xl font-semibold">
                     Upload Research Paper
@@ -44,6 +45,7 @@ export default function UploadSection({
                         variant="outline"
                         className="w-full cursor-pointer"
                         asChild
+                        disabled={!!uploadResult}
                     >
                         <span>Browse PDF</span>
                     </Button>
@@ -64,7 +66,11 @@ export default function UploadSection({
                 {uploadResult && (
                     <div className="rounded-lg border border-green-300 bg-green-50 p-4">
                         <p className="font-semibold text-green-700">
-                            Paper indexed successfully
+                            ✓ Paper indexed successfully
+                        </p>
+
+                        <p className="mt-2 font-medium">
+                            {uploadedFileName}
                         </p>
 
                         <p className="text-sm text-green-600">
@@ -75,14 +81,14 @@ export default function UploadSection({
 
                 <Button
                     onClick={uploadPDF}
-                    disabled={!selectedFile}
+                    disabled={!selectedFile || isUploading || !!uploadResult}
                 >
-                    Upload PDF
+                    {isUploading ? "Uploading..." : "Upload PDF"}
                 </Button>
 
-            </CardContent>
+            
 
-        </Card>
+        </div>
 
     );
 
