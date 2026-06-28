@@ -21,9 +21,23 @@ def retrieve_chunks(query):
 
         query_embeddings=[query_embedding.tolist()],
 
-        # topk
-        n_results=3
+        n_results=3,
+
+        include=["documents", "distances"]
 
     )
 
-    return results["documents"][0]
+    print(results["distances"][0])
+
+    retrieved_chunks = []
+
+    for document, distance in zip(
+        results["documents"][0],
+        results["distances"][0]
+    ):
+        retrieved_chunks.append({
+            "text": document,
+            "distance": distance
+        })
+
+    return retrieved_chunks

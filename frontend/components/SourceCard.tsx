@@ -2,7 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 
 type SourceCardProps = {
-    sources: string[];
+    sources: {
+        text: string;
+        distance: number;
+    }[];
 };
 
 export default function SourceCard({
@@ -41,10 +44,14 @@ export default function SourceCard({
                                 {expandedChunk === index ? "▼" : "▶"} Chunk {index + 1}
                             </p>
 
+                            <p className="text-xs text-muted-foreground mb-3">
+                                Distance: {source.distance.toFixed(3)}
+                            </p>
+
                            <p className="text-sm whitespace-pre-wrap">
                                 {expandedChunk === index
-                                    ? source
-                                    : `${source.substring(0, 200)}...`}
+                                ? source.text
+                                : `${source.text.substring(0, 200)}...`}
                             </p>
 
                         </div>

@@ -12,7 +12,9 @@ export default function Home() {
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
     const [uploadedFileName, setUploadedFileName] = useState("");
-    const [sources, setSources] = useState<string[]>([]);
+    const [sources, setSources] = useState<
+        { text: string; distance: number }[]
+    >([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isAsking, setIsAsking] = useState(false);
     const [uploadResult, setUploadResult] = useState("");
