@@ -50,9 +50,11 @@ export default function Home() {
         setIsUploading(false);
     }
     
-    async function askQuestion() {
+    async function askQuestion(customQuestion?: string) {
 
-        if (!question) {
+        const query = customQuestion ?? question;
+
+        if (!query) {
             alert("Please enter a question.");
             return;
         }
@@ -60,7 +62,7 @@ export default function Home() {
         setIsAsking(true);
 
         const response = await fetch(
-            `http://127.0.0.1:8000/ask?question=${encodeURIComponent(question)}`
+            `http://127.0.0.1:8000/ask?question=${encodeURIComponent(query)}`
         );
 
         const data = await response.json();
@@ -105,6 +107,7 @@ export default function Home() {
                                 setQuestion={setQuestion}
                                 askQuestion={askQuestion}
                                 isAsking={isAsking}
+                                uploadedFileName={uploadedFileName}
                             />
 
                             <AnswerCard
