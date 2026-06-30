@@ -6,6 +6,7 @@ from app.services.embedding_service import create_embeddings
 from app.services.vector_store import store_chunks
 from app.services.retriever import retrieve_chunks
 from app.services.llm_service import generate_answer
+from app.services.bm25_service import build_bm25
 
 # Import CORS middleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -61,6 +62,9 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     # Store chunks and embeddings inside ChromaDB
     store_chunks(chunks, embeddings)
+
+    # Build BM25 index
+    build_bm25(chunks)
 
     # Return the result
     return {

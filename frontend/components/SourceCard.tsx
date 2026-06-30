@@ -44,10 +44,31 @@ export default function SourceCard({
                                 {expandedChunk === index ? "▼" : "▶"} Chunk {index + 1}
                             </p>
 
-                            <p className="text-xs text-muted-foreground mb-3">
-                                Distance: {source.distance.toFixed(3)}
-                            </p>
+                            <div className="flex items-center gap-2 mb-3">
 
+                                {source.distance !== null ? (
+
+                                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">
+                                        Semantic Search
+                                    </span>
+
+                                ) : (
+
+                                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">
+                                        BM25
+                                    </span>
+
+                                )}
+
+                                {source.distance !== null && (
+
+                                    <span className="text-xs text-muted-foreground">
+                                        Distance: {source.distance.toFixed(3)}
+                                    </span>
+
+                                )}
+
+                            </div>
                            <p className="text-sm whitespace-pre-wrap">
                                 {expandedChunk === index
                                 ? source.text
