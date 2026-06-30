@@ -14,13 +14,19 @@ collection = client.get_or_create_collection(
 )
 
 
-def store_chunks(chunks, embeddings):
+def store_chunks(
+    chunks,
+    embeddings,
+    metadata
+):
 
     ids = []
 
-    # Create unique IDs for every chunk
-    for i in range(len(chunks)):
-        ids.append(str(i))
+    for item in metadata:
+
+        ids.append(
+            f'{item["paper_id"]}_chunk_{item["chunk_number"]}'
+        )
 
     collection.add(
 
@@ -28,6 +34,8 @@ def store_chunks(chunks, embeddings):
 
         documents=chunks,
 
-        embeddings=embeddings.tolist()
+        embeddings=embeddings.tolist(),
+
+        metadatas=metadata
 
     )

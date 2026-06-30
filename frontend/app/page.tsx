@@ -62,7 +62,7 @@ export default function Home() {
         setIsAsking(true);
 
         const response = await fetch(
-            `http://127.0.0.1:8000/ask?question=${encodeURIComponent(query)}`
+            `http://127.0.0.1:8000/ask?question=${encodeURIComponent(query)}&paper_id=${encodeURIComponent(uploadedFileName)}`
         );
 
         const data = await response.json();

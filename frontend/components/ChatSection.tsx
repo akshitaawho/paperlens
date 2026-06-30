@@ -12,9 +12,9 @@ type ChatSectionProps = {
 };
 
 const exampleQuestions = [
-    "What is the main contribution of this paper?",
-    "Summarize the methodology.",
-    "What are the limitations of this paper?",
+    "What is this paper about?",
+    "How does the proposed method work?",
+    "What are the key findings?",
 ];
 
 export default function ChatSection({
@@ -33,9 +33,15 @@ export default function ChatSection({
                     Ask your paper
                 </h2>
 
-                <p className="text-sm text-muted-foreground">
-                    Ask questions about <span className="font-medium">{uploadedFileName}</span>
-                </p>
+                <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                        Current paper
+                    </p>
+
+                    <p className="font-medium">
+                        {uploadedFileName}
+                    </p>
+                </div>
 
                 <Input
                     placeholder="Ask a question..."

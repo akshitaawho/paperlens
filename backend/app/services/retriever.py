@@ -15,7 +15,7 @@ collection = client.get_or_create_collection(
 VECTOR_TOP_K = 3
 BM25_TOP_K = 2
 
-def retrieve_chunks(query):
+def retrieve_chunks(query, paper_id):
 
     # Convert the user's question into an embedding
     query_embedding = model.encode(query)
@@ -25,32 +25,43 @@ def retrieve_chunks(query):
 
         query_embeddings=[query_embedding.tolist()],
 
-        n_results=VECTOR_TOP_K,
+        n_results=5,
 
-        include=["documents", "distances"]
+        where={
+            "paper_id": paper_id
+        },
+
+        include=[
+            "documents",
+            "distances",
+            "metadatas"
+        ]
 
     )
 
-    print(results["distances"][0])
-
     retrieved_chunks = []
 
-    for rank, (document, distance) in enumerate(
+    for rank, (document, distance, metadata) in enumerate(
         zip(
             results["documents"][0],
-            results["distances"][0]
+            results["distances"][0],
+            results["metadatas"][0]
         ),
         start=1
     ):
 
         retrieved_chunks.append({
-
             "text": document,
 
             "distance": distance,
 
-            "rrf_score": 1 / (60 + rank)
+            "rrf_score": 1 / (60 + rank),
 
+            "paper_title": metadata["paper_title"],
+
+            "paper_id": metadata["paper_id"],
+
+            "chunk_number": metadata["chunk_number"]
         })
 
     bm25_chunks = search_bm25(
@@ -96,5 +107,10 @@ def retrieve_chunks(query):
         reverse=True
     )
 
+    for chunk in retrieved_chunks:
+        print("-----------------------")
+        print(chunk.get("paper_title"))
+        print(chunk.get("chunk_number"))
+        print(chunk["text"][:120])
 
     return retrieved_chunks

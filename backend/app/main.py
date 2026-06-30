@@ -1,12 +1,17 @@
 from fastapi import FastAPI, UploadFile, File
-import os
-from app.services.pdf_reader import extract_text_from_pdf
 from app.services.chunker import split_into_chunks
 from app.services.embedding_service import create_embeddings
 from app.services.vector_store import store_chunks
 from app.services.retriever import retrieve_chunks
 from app.services.llm_service import generate_answer
 from app.services.bm25_service import build_bm25
+from app.services.paper_service import add_paper
+from app.services.pdf_reader import (
+    extract_text_from_pdf,
+    extract_paper_title,
+)
+from app.services.metadata_service import is_metadata_question
+from app.database import Base, engine
 
 # Import CORS middleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +23,8 @@ app = FastAPI(
     description="Backend API for the PaperLens research assistant.",
     version="1.0.0"
 )
+
+Base.metadata.create_all(bind=engine)
 
 # ENABLE CORS: This allows our React/Next.js frontend to communicate with the backend.
 app.add_middleware(
@@ -51,6 +58,8 @@ async def upload_pdf(file: UploadFile = File(...)):
     with open(file_path, "wb") as pdf_file:
         pdf_file.write(await file.read())
 
+    paper_title = extract_paper_title(file_path)
+
     # Extract text using our PDF reader service
     extracted_text = extract_text_from_pdf(file_path)
 
@@ -61,7 +70,34 @@ async def upload_pdf(file: UploadFile = File(...)):
     embeddings = create_embeddings(chunks)
 
     # Store chunks and embeddings inside ChromaDB
-    store_chunks(chunks, embeddings)
+    metadata = []
+
+    for index in range(len(chunks)):
+        metadata.append({
+
+            "paper_title": paper_title,
+
+            "paper_id": file.filename,
+
+            "chunk_number": index + 1
+
+        })
+
+    paper = {
+
+        "paper_id": file.filename,
+
+        "paper_title": paper_title
+
+    }
+
+    add_paper(paper)
+
+    store_chunks(
+        chunks,
+        embeddings,
+        metadata
+    )
 
     # Build BM25 index
     build_bm25(chunks)
@@ -86,10 +122,26 @@ def search(query: str):
 
 # generates an answer based on the chunks
 @app.get("/ask")
-def ask(question: str):
+def ask(
+    question: str,
+    paper_id: str
+):
 
     # Retrieve the most relevant chunks
-    retrieved_chunks = retrieve_chunks(question)
+    retrieved_chunks = retrieve_chunks(
+        question,
+        paper_id
+    )
+
+    if is_metadata_question(question):
+
+        metadata = retrieved_chunks[0]
+
+        return {
+            "question": question,
+            "answer": f"Title: {metadata['paper_title']}",
+            "retrieved_chunks": retrieved_chunks
+        }
 
     # Generate an answer using the LLM
     answer = generate_answer(
@@ -102,3 +154,10 @@ def ask(question: str):
         "answer": answer,
         "retrieved_chunks": retrieved_chunks
     }
+
+@app.get("/papers")
+def get_papers():
+
+    from app.services.paper_service import get_all_papers
+
+    return get_all_papers()
