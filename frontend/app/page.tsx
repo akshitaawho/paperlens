@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UploadSection from "../components/UploadSection";
 import ChatSection from "../components/ChatSection";
 import AnswerCard from "../components/AnswerCard";
@@ -11,7 +11,7 @@ export default function Home() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
-    
+
     const [papers, setPapers] = useState<
         {
             paper_id: string;
@@ -67,7 +67,7 @@ export default function Home() {
 
         setIsUploading(false);
     }
-    
+
     async function askQuestion(customQuestion?: string) {
 
         const query = customQuestion ?? question;
@@ -91,6 +91,30 @@ export default function Home() {
         setIsAsking(false);
     }
 
+    async function loadPapers() {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/papers"
+        );
+
+        const data = await response.json();
+
+        setPapers(data);
+
+        if (data.length > 0 && !selectedPaper) {
+
+            setSelectedPaper(data[0].paper_id);
+
+        }
+
+    }
+
+    useEffect(() => {
+
+        loadPapers();
+
+    }, []);
+
     const currentPaper = papers.find(
         (paper) => paper.paper_id === selectedPaper
     );
@@ -99,90 +123,97 @@ export default function Home() {
 
         <main className="min-h-screen bg-background">
 
-            <div className="max-w-4xl mx-auto px-6 py-12">
+            <div className="flex min-h-screen">
 
-                <h1 className="text-5xl font-bold text-center">
-                    PaperLens
-                </h1>
+                <aside className="w-80 border-r bg-card p-6 h-screen sticky top-0 overflow-y-auto">
 
-                <p className="text-muted-foreground text-center mt-3 mb-10">
-                    AI-powered Research Paper Assistant
-                </p>
+                    <h2 className="text-2xl font-bold mb-6">
+                        Paper Library
+                    </h2>
 
-                <div className="rounded-2xl border bg-card shadow-sm">
+                    <div className="space-y-2">
 
-                    <UploadSection
-                        selectedFile={selectedFile}
-                        setSelectedFile={setSelectedFile}
-                        uploadPDF={uploadPDF}
-                        uploadResult={uploadResult}
-                        uploadedFileName={selectedPaper}
-                        isUploading={isUploading}
-                    />
+                        {papers.map((paper) => (
 
-                    {papers.length > 0 && (
+                            <button
+                                key={paper.paper_id}
+                                onClick={() => {
+                                    setSelectedPaper(paper.paper_id);
+                                    setAnswer("");
+                                    setSources([]);
+                                    setQuestion("");
+                                }}
+                                className={`
+                                    w-full
+                                    text-left
+                                    border
+                                    rounded-lg
+                                    p-3
+                                    transition-colors
+                                    ${
+                                        selectedPaper === paper.paper_id
+                                            ? "bg-blue-100 border-blue-500 font-semibold"
+                                            : "hover:bg-gray-50"
+                                    }
+                                `}
+                            >
+                                {paper.paper_title}
+                            </button>
 
-                        <div className="p-6 border-t">
+                        ))}
 
-                            <h2 className="text-xl font-semibold mb-4">
-                                Paper Library
-                            </h2>
+                    </div>
 
-                            <div className="space-y-2">
+                </aside>
 
-                                {papers.map((paper) => (
+                <div className="flex-1 p-8 overflow-y-auto h-screen">
 
-                                    <button
-                                        key={paper.paper_id}
-                                        onClick={() => setSelectedPaper(paper.paper_id)}
-                                        className={`
-                                            w-full
-                                            text-left
-                                            border
-                                            rounded-lg
-                                            p-3
-                                            transition-colors
-                                            ${
-                                                selectedPaper === paper.paper_id
-                                                    ? "bg-blue-100 border-blue-500 font-semibold"
-                                                    : "hover:bg-gray-50"
-                                            }
-                                        `}
-                                    >
-                                        {paper.paper_title}
-                                    </button>
+                    <h1 className="text-5xl font-bold text-center">
+                        PaperLens
+                    </h1>
 
-                                ))}
+                    <p className="text-muted-foreground text-center mt-3 mb-10">
+                        AI-powered Research Paper Assistant
+                    </p>
 
-                            </div>
+                    <div className="rounded-2xl border bg-card shadow-sm">
 
-                        </div>
+                        <UploadSection
+                            selectedFile={selectedFile}
+                            setSelectedFile={setSelectedFile}
+                            uploadPDF={uploadPDF}
+                            uploadResult={uploadResult}
+                            uploadedFileName={
+                                currentPaper?.paper_title ?? selectedPaper
+                            }
+                            isUploading={isUploading}
+                        />
 
-                    )}
+                        {selectedPaper && (
+                            <>
+                                <div className="border-t" />
 
-                    {uploadResult && (
-                        <>
-                            <div className="border-t" />
+                                <ChatSection
+                                    question={question}
+                                    setQuestion={setQuestion}
+                                    askQuestion={askQuestion}
+                                    isAsking={isAsking}
+                                    uploadedFileName={
+                                        currentPaper?.paper_title ?? selectedPaper
+                                    }
+                                />
 
-                            <ChatSection
-                                question={question}
-                                setQuestion={setQuestion}
-                                askQuestion={askQuestion}
-                                isAsking={isAsking}
-                                uploadedFileName={
-                                    currentPaper?.paper_title ?? selectedPaper
-                                }
-                            />
+                                <AnswerCard
+                                    answer={answer}
+                                />
 
-                            <AnswerCard
-                                answer={answer}
-                            />
+                                <SourceCard
+                                    sources={sources}
+                                />
+                            </>
+                        )}
 
-                            <SourceCard
-                                sources={sources}
-                            />
-                        </>
-                    )}
+                    </div>
 
                 </div>
 
