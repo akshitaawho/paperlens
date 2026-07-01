@@ -107,10 +107,4 @@ def retrieve_chunks(query, paper_id):
         reverse=True
     )
 
-    for chunk in retrieved_chunks:
-        print("-----------------------")
-        print(chunk.get("paper_title"))
-        print(chunk.get("chunk_number"))
-        print(chunk["text"][:120])
-
     return retrieved_chunks
